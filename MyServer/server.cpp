@@ -34,8 +34,8 @@ server::server(QWidget *parent) :
 
     connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(close()));
     //! [3]
-    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(sendData()));
     connect(ui->listenButton, SIGNAL(clicked()), this, SLOT(startServer()));
+    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(sendData()));
 
 }
 
@@ -63,7 +63,8 @@ void server::sessionOpened()
 
 //! [0] //! [1]
     tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen()) {
+
+    if (!tcpServer->listen(QHostAddress::Any,2000)) {
         QMessageBox::critical(this, tr("Fortune Server"),
                               tr("Unable to start the server: %1.")
                               .arg(tcpServer->errorString()));
@@ -72,20 +73,19 @@ void server::sessionOpened()
     }
 
 //! [0]
-    QString ipAddress;
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
     // use the first non-localhost IPv4 address
     for (int i = 0; i < ipAddressesList.size(); ++i) {
         if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
             ipAddressesList.at(i).toIPv4Address()) {
-            ipAddress = ipAddressesList.at(i).toString();
+            server::ipAddress = ipAddressesList.at(i).toString();
             break;
         }
     }
     // if we did not find one, use IPv4 localhost
-    if (ipAddress.isEmpty())
-        ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
-/*    statusLabel->setText(tr("The server is running on\n\nIP: %1\nport: %2\n\n"
+    if (server::ipAddress.isEmpty())
+        server::ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
+    /*statusLabel->setText(tr("The server is running on\n\nIP: %1\nport: %2\n\n"
                             "Run the Fortune Client example now.")
                          .arg(ipAddress).arg(tcpServer->serverPort()));*/
 //! [1]
@@ -119,9 +119,9 @@ void server::moveToCenter()
 
 void server::startServer()
 {
-
-    qDebug()<<"Listening...";
-
+    qDebug()<<"Server is Listening for connections...";
+    qDebug()<<server::ipAddress;
+    qDebug()<<tcpServer->serverPort();
 
 }
 
@@ -144,7 +144,7 @@ void server::sendData()
     {
     qDebug()<<"Could not read image file !";
     }
-    out << fortunes.at(qrand() % fortunes.size());
+    //out << fortunes.at(qrand() % fortunes.size());
     out.device()->seek(0);
     out << (quint16)(block.size() - sizeof(quint16));
 //! [6] //! [7]

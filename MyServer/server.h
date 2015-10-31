@@ -34,7 +34,8 @@ private:
        QStringList fortunes;
        QNetworkSession *networkSession;
        QPushButton *listenButton;
-
+       QString ipAddress;
+       quint16 portNumber;
 private slots:
     void sessionOpened();
     void sendData();
